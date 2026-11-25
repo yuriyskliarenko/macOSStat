@@ -4,7 +4,7 @@
 
 English | [Українська](README.uk.md)
 
-A native system inspector for macOS in a single binary: a window, a menu bar item and a command-line interface.
+A native system inspector for macOS available as an app or a single binary: a window, a menu bar item and a command-line interface.
 It collects hardware, kernel, battery, sensor and network data in one place and explains what the numbers mean.
 
 No `sudo`, no third-party Go modules, no network requests.
@@ -36,30 +36,30 @@ Development and testing are done on Apple Silicon with macOS 27. Intel and older
 
 ## Installation
 
+### App
+
+1. Download `macOSStat.app.zip` from the [latest release](https://github.com/yuriyskliarenko/macOSStat/releases/latest) and unpack it.
+2. Move `macOSStat.app` to `/Applications`.
+3. Open it. If macOS blocks it, see [Gatekeeper](#gatekeeper).
+
 ### Terminal
 
 ```sh
-curl -fL https://github.com/yuriyskliarenko/macOSStat/releases/latest/download/macOSStat.tar.gz | tar -xz
-./macOSStat
-```
-
-### Browser
-
-Download `macOSStat.tar.gz` from the [latest release](https://github.com/yuriyskliarenko/macOSStat/releases/latest), then run:
-
-```sh
-cd ~/Downloads
-tar -xzf macOSStat.tar.gz                  # skip if the browser has already unpacked it
-xattr -d com.apple.quarantine macOSStat    # "No such xattr" is fine
+curl -fL https://github.com/yuriyskliarenko/macOSStat/releases/latest/download/macOSStat.tar.gz | tar -xz macOSStat
 ./macOSStat
 ```
 
 ### Gatekeeper
 
-The binary is not notarized by Apple, so macOS blocks copies downloaded with a browser.
-Remove the quarantine attribute as shown above, or try to open the app once and then choose
-**System Settings → Privacy & Security → Open Anyway**. Do this only for software you trust.
-Managed Macs may not allow it.
+macOSStat is not notarized by Apple, so macOS blocks copies downloaded with a browser
+("Apple could not verify…"). Choose **Done**, then either open
+**System Settings → Privacy & Security** and choose **Open Anyway**, or run:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/macOSStat.app
+```
+
+Do this only for software you trust. Managed Macs may not allow it.
 
 ### Optional: add to PATH
 
@@ -82,6 +82,8 @@ Closing the window keeps the app in the menu bar; quit with Cmd+Q or from the me
 Opening the binary from Finder also opens a Terminal window, which must stay open while the app runs.
 
 ### Command line
+
+With the app, use `/Applications/macOSStat.app/Contents/MacOS/macOSStat` instead of `./macOSStat`.
 
 ```sh
 ./macOSStat --cli                             # overview
@@ -118,7 +120,7 @@ Its own files are stored in `~/Library/Application Support/macOSStat`:
 
 Snapshots contain the hostname and other identifiers. Review them before sharing.
 
-To uninstall, quit the app, delete the binary and remove that directory.
+To uninstall, quit the app, delete the app or binary and remove that directory.
 
 ## Limitations
 
@@ -140,8 +142,7 @@ cd macOSStat
 | Command | Result |
 |---|---|
 | `./build.sh` | `./macOSStat` for the current Mac |
-| `./build.sh release` | Universal `dist/macOSStat` and `dist/macOSStat.tar.gz` |
-| `./build.sh app` | `dist/macOSStat.app` and `dist/macOSStat.zip` |
+| `./build.sh release` | Universal binary and app in `dist/`, with archives for release |
 | `./build.sh check` | Formatting, `go vet` and tests |
 | `./build.sh clean` | Removes build output |
 

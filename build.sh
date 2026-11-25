@@ -6,12 +6,19 @@ cd "$(dirname "$0")"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
+# App version: the v* tag being released, otherwise the latest reachable tag.
+VERSION=${VERSION:-$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)}
+VERSION=${VERSION#v}
+if ! [[ $VERSION =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+  VERSION=0.0.0
+fi
+
 usage() {
   cat <<'U'
 ./build.sh           ./macOSStat binary for this Mac
-./build.sh release   dist/macOSStat universal binary and dist/macOSStat.tar.gz
-                     (arm64 + x86_64, macOS 11+)
-./build.sh app       optional dist/macOSStat.app and dist/macOSStat.zip
+./build.sh release   universal (arm64 + x86_64, macOS 11+) binary and app:
+                     dist/macOSStat, dist/macOSStat.tar.gz,
+                     dist/macOSStat.app, dist/macOSStat.app.zip
 ./build.sh check     gofmt, go vet and tests
 ./build.sh clean     remove ./macOSStat and dist/
 U
@@ -45,13 +52,13 @@ build_universal() {
   lipo -create -output "$1" "$TMP/arm64" "$TMP/amd64"
 }
 
-build_release() {
+build_cli() {
   mkdir -p dist
   rm -f dist/macOSStat dist/macOSStat.tar.gz
   build_universal dist/macOSStat
   # Ad-hoc signature: required to run on arm64, does not satisfy Gatekeeper.
   codesign --force --sign - --identifier local.macosstat dist/macOSStat
-  COPYFILE_DISABLE=1 tar --uid 0 --gid 0 --uname root --gname wheel -czf dist/macOSStat.tar.gz -C dist macOSStat
+  COPYFILE_DISABLE=1 tar --uid 0 --gid 0 --uname root --gname wheel -czf dist/macOSStat.tar.gz -C "$PWD/dist" macOSStat -C "$PWD" LICENSE
   echo "Done: dist/macOSStat, dist/macOSStat.tar.gz"
 }
 
@@ -64,9 +71,10 @@ for s in 16 32 128 256 512; do
   sips -z $((s * 2)) $((s * 2)) "$TMP/icon.png" --out "$TMP/icon.iconset/icon_${s}x${s}@2x.png" >/dev/null
 done
 
-rm -rf "$APP" dist/macOSStat.zip
+rm -rf "$APP" dist/macOSStat.zip dist/macOSStat.app.zip
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-build_universal "$APP/Contents/MacOS/macOSStat"
+cp dist/macOSStat "$APP/Contents/MacOS/macOSStat"
+cp LICENSE "$APP/Contents/Resources/"
 iconutil -c icns "$TMP/icon.iconset" -o "$APP/Contents/Resources/icon.icns"
 cat > "$APP/Contents/Info.plist" <<'P'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -86,15 +94,16 @@ cat > "$APP/Contents/Info.plist" <<'P'
 </dict>
 </plist>
 P
+plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
+plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
 codesign --force --sign - "$APP"
-ditto -c -k --keepParent "$APP" dist/macOSStat.zip
-echo "Done: $APP, dist/macOSStat.zip"
+ditto -c -k --keepParent "$APP" dist/macOSStat.app.zip
+echo "Done: $APP, dist/macOSStat.app.zip"
 }
 
 case "${1:-bin}" in
   bin) check; build_bin ;;
-  release) check; build_release ;;
-  app) check; build_app ;;
+  release) check; build_cli; build_app ;;
   check) check ;;
   clean) rm -rf macOSStat dist ;;
   -h|--help|help) usage ;;

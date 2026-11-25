@@ -4,7 +4,7 @@
 
 [English](README.md) | Українська
 
-Системний інспектор для macOS в одному бінарному файлі: вікно, значок у рядку меню та інтерфейс командного рядка.
+Системний інспектор для macOS у вигляді застосунку або одного бінарного файлу: вікно, значок у рядку меню та інтерфейс командного рядка.
 Збирає в одному місці дані про обладнання, ядро, акумулятор, датчики й мережу та пояснює, що вони означають.
 
 Без `sudo`, без сторонніх модулів Go, без мережевих запитів.
@@ -36,30 +36,30 @@
 
 ## Встановлення
 
+### Застосунок
+
+1. Завантажте `macOSStat.app.zip` з [останнього релізу](https://github.com/yuriyskliarenko/macOSStat/releases/latest) і розпакуйте.
+2. Перемістіть `macOSStat.app` до `/Applications`.
+3. Відкрийте його. Якщо macOS блокує запуск, див. [Gatekeeper](#gatekeeper).
+
 ### Через Terminal
 
 ```sh
-curl -fL https://github.com/yuriyskliarenko/macOSStat/releases/latest/download/macOSStat.tar.gz | tar -xz
-./macOSStat
-```
-
-### Через браузер
-
-Завантажте `macOSStat.tar.gz` з [останнього релізу](https://github.com/yuriyskliarenko/macOSStat/releases/latest) і виконайте:
-
-```sh
-cd ~/Downloads
-tar -xzf macOSStat.tar.gz                  # пропустіть, якщо браузер уже розпакував архів
-xattr -d com.apple.quarantine macOSStat    # повідомлення "No such xattr" не є проблемою
+curl -fL https://github.com/yuriyskliarenko/macOSStat/releases/latest/download/macOSStat.tar.gz | tar -xz macOSStat
 ./macOSStat
 ```
 
 ### Gatekeeper
 
-Бінарний файл не нотаризовано в Apple, тому macOS блокує копії, завантажені через браузер.
-Видаліть атрибут карантину, як показано вище, або спробуйте відкрити програму один раз, а потім виберіть
-**System Settings → Privacy & Security → Open Anyway**. Робіть це лише для програм, яким довіряєте.
-На корпоративних Mac це може бути заборонено.
+macOSStat не нотаризовано в Apple, тому macOS блокує копії, завантажені через браузер
+(«Apple could not verify…»). Натисніть **Done**, а потім відкрийте
+**System Settings → Privacy & Security** і виберіть **Open Anyway** або виконайте:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/macOSStat.app
+```
+
+Робіть це лише для програм, яким довіряєте. На корпоративних Mac це може бути заборонено.
 
 ### За бажанням: додати до PATH
 
@@ -82,6 +82,8 @@ sudo mv macOSStat /usr/local/bin/
 Якщо відкрити бінарний файл із Finder, з’явиться також вікно Terminal: воно має залишатися відкритим, поки програма працює.
 
 ### Командний рядок
+
+Для застосунку замість `./macOSStat` використовуйте `/Applications/macOSStat.app/Contents/MacOS/macOSStat`.
 
 ```sh
 ./macOSStat --cli                             # огляд
@@ -118,7 +120,7 @@ macOSStat не змінює налаштувань системи й не вик
 
 Знімки містять ім’я хоста та інші ідентифікатори. Перегляньте їх, перш ніж передавати іншим.
 
-Щоб видалити програму, завершіть її, видаліть бінарний файл і цей каталог.
+Щоб видалити програму, завершіть її, видаліть застосунок або бінарний файл і цей каталог.
 
 ## Обмеження
 
@@ -140,8 +142,7 @@ cd macOSStat
 | Команда | Результат |
 |---|---|
 | `./build.sh` | `./macOSStat` для поточного Mac |
-| `./build.sh release` | Універсальний `dist/macOSStat` і `dist/macOSStat.tar.gz` |
-| `./build.sh app` | `dist/macOSStat.app` і `dist/macOSStat.zip` |
+| `./build.sh release` | Універсальний бінарний файл і застосунок у `dist/` з архівами для релізу |
 | `./build.sh check` | Форматування, `go vet` і тести |
 | `./build.sh clean` | Видаляє результати збірки |
 
