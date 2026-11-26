@@ -98,8 +98,9 @@ static NSString *call(NSString *request) {
 
 - (void)menuNeedsUpdate:(NSMenu *)menu {
     [menu removeAllItems];
+    // Data rows are regular items so they are drawn at full contrast; a click opens the window.
     for (NSString *line in self.lines)
-        [menu addItemWithTitle:line action:nil keyEquivalent:@""].enabled = NO;
+        [menu addItemWithTitle:line action:@selector(showWindow) keyEquivalent:@""].target = self;
     [menu addItem:NSMenuItem.separatorItem];
     [menu addItemWithTitle:T(@"Відкрити macOSStat", @"Open macOSStat") action:@selector(showWindow) keyEquivalent:@""].target = self;
     [menu addItemWithTitle:T(@"Завершити", @"Quit") action:@selector(terminate:) keyEquivalent:@""].target = NSApp;
